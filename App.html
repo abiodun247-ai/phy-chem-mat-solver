@@ -1,0 +1,181 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel Online Tutorial Question Bank</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to right, #36D1DC, #5B86E5);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    header {
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      padding: 20px;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .container {
+      margin: 30px auto;
+      background-color: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 250px;
+      color: black;
+    }
+
+    select, input, button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 10px;
+    }
+
+    button {
+      background-color: #ff416c;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #ff4b2b;
+    }
+
+    .result, .explanation, .error {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .result {
+      background-color: #36D1DC;
+      border: 2px solid #5B86E5;
+      color: white;
+    }
+
+    .explanation {
+      background-color: #f1f1f1;
+      color: black;
+    }
+
+    .error {
+      background-color: #ff4b2b;
+      border: 2px solid #ff416c;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Excel Online Tutorial Question Bank</h1>
+  <p>Solve Physics, Chemistry, and Maths with abiodun samuel !</p>
+</header>
+
+<div class="container">
+  <label for="subject">Select Subject:</label>
+  <select id="subject" onchange="updateTopics()">
+    <option value="physics">Physics</option>
+    <option value="chemistry">Chemistry</option>
+    <option value="math">Math</option>
+  </select>
+
+  <label for="topic">Select Topic:</label>
+  <select id="topic" onchange="updateParameters()"></select>
+
+  <div id="parameters"></div>
+
+  <button onclick="solveProblem()">Solve</button>
+
+  <div id="result"></div>
+  <div id="explanation"></div>
+</div>
+
+<script>
+  const topics = {
+    physics: [
+      { name: "Velocity", parameters: ['Displacement', 'Time'], formula: (inputs) => inputs['Displacement'] / inputs['Time'], unit: "m/s" },
+      { name: "Acceleration", parameters: ['Initial Velocity', 'Final Velocity', 'Time'], formula: (inputs) => (inputs['Final Velocity'] - inputs['Initial Velocity']) / inputs['Time'], unit: "m/s²" },
+      { name: "Force", parameters: ['Mass', 'Acceleration'], formula: (inputs) => inputs['Mass'] * inputs['Acceleration'], unit: "N" },
+      { name: "Work", parameters: ['Force', 'Distance'], formula: (inputs) => inputs['Force'] * inputs['Distance'], unit: "J" },
+      { name: "Power", parameters: ['Work', 'Time'], formula: (inputs) => inputs['Work'] / inputs['Time'], unit: "W" },
+      { name: "Pressure", parameters: ['Force', 'Area'], formula: (inputs) => inputs['Force'] / inputs['Area'], unit: "Pa" },
+      { name: "Momentum", parameters: ['Mass', 'Velocity'], formula: (inputs) => inputs['Mass'] * inputs['Velocity'], unit: "kg m/s" },
+      { name: "Kinetic Energy", parameters: ['Mass', 'Velocity'], formula: (inputs) => 0.5 * inputs['Mass'] * Math.pow(inputs['Velocity'], 2), unit: "J" }
+    ],
+    math: [
+      { name: "Pythagoras Theorem", parameters: ['a', 'b'], formula: (inputs) => Math.sqrt(Math.pow(inputs['a'], 2) + Math.pow(inputs['b'], 2)), unit: "" },
+      { name: "Simple Interest", parameters: ['Principal', 'Rate', 'Time'], formula: (inputs) => (inputs['Principal'] * inputs['Rate'] * inputs['Time']) / 100, unit: "currency" },
+      { name: "Quadratic Equation", parameters: ['a', 'b', 'c'], formula: (inputs) => {
+          let d = Math.pow(inputs['b'], 2) - 4 * inputs['a'] * inputs['c'];
+          return d >= 0 ? [(-inputs['b'] + Math.sqrt(d)) / (2 * inputs['a']), (-inputs['b'] - Math.sqrt(d)) / (2 * inputs['a'])] : "No real roots";
+        }, unit: ""
+      },
+      { name: "Area of a Circle", parameters: ['Radius'], formula: (inputs) => Math.PI * Math.pow(inputs['Radius'], 2), unit: "m²" },
+      { name: "Perimeter of a Rectangle", parameters: ['Length', 'Width'], formula: (inputs) => 2 * (inputs['Length'] + inputs['Width']), unit: "m" }
+    ],
+    chemistry: [
+      { name: "Molar Mass", parameters: ['Mass', 'Moles'], formula: (inputs) => inputs['Mass'] / inputs['Moles'], unit: "g/mol" },
+      { name: "Concentration", parameters: ['Moles', 'Volume'], formula: (inputs) => inputs['Moles'] / inputs['Volume'], unit: "M" },
+      { name: "Density", parameters: ['Mass', 'Volume'], formula: (inputs) => inputs['Mass'] / inputs['Volume'], unit: "g/cm³" },
+      { name: "Percentage Purity", parameters: ['Pure Mass', 'Total Mass'], formula: (inputs) => (inputs['Pure Mass'] / inputs['Total Mass']) * 100, unit: "%" }
+    ]
+  };
+
+  function updateTopics() {
+    const subject = document.getElementById('subject').value;
+    const topicSelect = document.getElementById('topic');
+    topicSelect.innerHTML = '';
+    
+    topics[subject].forEach((topic, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = topic.name;
+      topicSelect.appendChild(option);
+    });
+
+    updateParameters();
+  }
+
+  function updateParameters() {
+    const subject = document.getElementById('subject').value;
+    const topicIndex = document.getElementById('topic').value;
+    const topic = topics[subject][topicIndex];
+    const paramDiv = document.getElementById('parameters');
+    paramDiv.innerHTML = '';
+
+    topic.parameters.forEach(param => {
+      paramDiv.innerHTML += `<label>${param}:</label><input type="number" id="${param}" placeholder="Enter ${param}">`;
+    });
+  }
+
+  function solveProblem() {
+    const subject = document.getElementById('subject').value;
+    const topicIndex = document.getElementById('topic').value;
+    const topic = topics[subject][topicIndex];
+    let inputs = {};
+
+    topic.parameters.forEach(param => inputs[param] = parseFloat(document.getElementById(param).value));
+
+    let result = topic.formula(inputs);
+    document.getElementById('result').innerHTML = `<div class="result">Result: ${result} ${topic.unit}</div>`;
+  }
+
+  updateTopics();
+</script>
+
+</body>
+</html
